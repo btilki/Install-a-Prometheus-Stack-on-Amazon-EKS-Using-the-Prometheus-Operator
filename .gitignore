@@ -1,0 +1,8 @@
+# Ignore OS and tooling files
+.DS_Store
+*.log
+*.zip
+
+# Local environment
+.env
+.kube

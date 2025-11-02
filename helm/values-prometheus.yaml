@@ -1,0 +1,51 @@
+# Sample values for prometheus-community/kube-prometheus-stack
+# Adjust storageClassName, passwords and sizes for your environment.
+
+grafana:
+  enabled: true
+  adminUser: admin
+  adminPassword: "ChangeMe123!"
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClassName: gp2
+  sidecar:
+    dashboards:
+      enabled: false
+
+prometheus:
+  prometheusSpec:
+    retention: "7d"
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp2
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+
+alertmanager:
+  alertmanagerSpec:
+    replicas: 1
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp2
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi
+
+kubeStateMetrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
+
+prometheusOperator:
+  createCustomResource: true
+
+# Keep RBAC on (default)
+rbac:
+  create: true

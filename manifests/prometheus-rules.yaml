@@ -1,0 +1,29 @@
+# Example PrometheusRule resource with a simple alert
+# Apply into the monitoring namespace (kubectl apply -n monitoring -f thisfile)
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: example-rules
+  labels:
+    role: alert-rules
+spec:
+  groups:
+  - name: example.rules
+    rules:
+    - alert: HighNodeCPU
+      expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Node high CPU load (instance {{ $labels.instance }})"
+        description: "CPU usage is above 80% for more than 5 minutes."
+
+    - alert: PrometheusDown
+      expr: absent(up{job="prometheus"} == 1)
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Prometheus instance down"
+        description: "Prometheus job is not reporting as up."

@@ -1,0 +1,29 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: prometheus-demo
+  region: us-west-2
+  version: "1.26"
+
+vpc:
+  # Use eksctl defaults or set existingVPC if you have one
+  nat:
+    gateway: Single
+
+managedNodeGroups:
+  - name: ng-standard
+    instanceType: t3.medium
+    desiredCapacity: 2
+    minSize: 1
+    maxSize: 4
+    volumeSize: 20
+    labels:
+      role: worker
+    iam:
+      withAddonPolicies:
+        imageBuilder: false
+        autoScaler: true
+    ssh:
+      allow: true
+      publicKeyPath: ~/.ssh/id_rsa.pub
