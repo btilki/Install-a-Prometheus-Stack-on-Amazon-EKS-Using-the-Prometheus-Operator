@@ -1,4 +1,32 @@
-# Install Prometheus Stack in Kubernetes (EKS) using the Prometheus Operator and add a PrometheusRule and a Grafana dashboard 
+# Install a Prometheus Stack on Amazon EKS Using the Prometheus Operator 
+
+Includes: PrometheusRule example + sample Grafana dashboard
+
+This sample project provides everything you need to stand up an Amazon EKS cluster, install a full monitoring stack using the kube-prometheus-stack Helm chart (Prometheus Operator), deploy a sample alert, and load a Grafana dashboard.
+
+It includes ready-to-use manifests, Helm values, utility scripts, and a packaging helper.
+You can clone this repo or copy these files into your own GitHub project.
+
+What This Project Demonstrates
+
+Creating an Amazon EKS cluster using eksctl
+
+Installing the Prometheus Operator and the full monitoring suite:
+
+Prometheus
+
+Alertmanager
+
+Grafana
+
+Exporters and CRDs that power the operator
+
+Applying a sample PrometheusRule alert
+
+Importing a simple Grafana dashboard
+
+Cleaning up the environment safely
+
 
 This sample project contains files and scripts you can download and push to a GitHub repository. It demonstrates how to:
 
