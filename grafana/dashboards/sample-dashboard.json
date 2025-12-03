@@ -1,25 +1,28 @@
 {
   "id": null,
   "uid": null,
-  "title": "Sample - Node CPU",
-  "tags": ["example"],
-  "timezone": "browser",
-  "schemaVersion": 27,
+  "title": "Sample - Node CPU", // Dashboard title
+  "tags": ["example"],          // Dashboard tags for grouping
+  "timezone": "browser",        // Uses viewer's local timezone
+  "schemaVersion": 27,          // Grafana schema version
   "version": 1,
-  "refresh": "30s",
+  "refresh": "30s",             // Auto-refresh interval
   "panels": [
     {
-      "type": "graph",
-      "title": "Node CPU (idle -> usage)",
-      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 9 },
+      "type": "graph",          // Graph visualisation panel
+      "title": "Node CPU (idle -> usage)", // Panel title
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 9 }, // Panel layout on dashboard
       "targets": [
         {
-          "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
-          "legendFormat": "{{instance}}",
-          "refId": "A"
+          "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)", 
+          // Prometheus query: calculates CPU *usage* by subtracting idle% from 100
+          // irate() over 5min gives short-term per-second idle rate
+          // avg by(instance) aggregates per node
+          "legendFormat": "{{instance}}", // Legend shows instance name
+          "refId": "A"                    // Query reference ID
         }
       ],
-      "id": 1
+      "id": 1 // Panel identifier
     }
   ]
 }
