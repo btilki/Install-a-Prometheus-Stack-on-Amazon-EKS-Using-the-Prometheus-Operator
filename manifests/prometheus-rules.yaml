@@ -1,29 +1,33 @@
-# Example PrometheusRule resource with a simple alert
-# Apply into the monitoring namespace (kubectl apply -n monitoring -f thisfile)
+# PrometheusRule CRD used to define alerting rules for Prometheus
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: example-rules
   labels:
-    role: alert-rules
+    role: alert-rules   # Label so Prometheus operator picks it up
 spec:
   groups:
-  - name: example.rules
+  - name: example.rules  # Logical group of alert rules
     rules:
+
+    # -------- Alert 1: High Node CPU --------
     - alert: HighNodeCPU
+      # Expression: calculates CPU usage by subtracting idle percentage from 100
       expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
-      for: 5m
+      for: 5m               # Must stay above threshold for 5 minutes
       labels:
-        severity: warning
+        severity: warning   # Indicates alert severity
       annotations:
         summary: "Node high CPU load (instance {{ $labels.instance }})"
         description: "CPU usage is above 80% for more than 5 minutes."
 
+    # -------- Alert 2: Prometheus Down --------
     - alert: PrometheusDown
+      # 'absent' checks if the 'up' metric is missing for the Prometheus job
       expr: absent(up{job="prometheus"} == 1)
-      for: 2m
+      for: 2m               # Fire if missing for 2 minutes
       labels:
-        severity: critical
+        severity: critical  # Higher severity since Prometheus is critical
       annotations:
         summary: "Prometheus instance down"
         description: "Prometheus job is not reporting as up."
