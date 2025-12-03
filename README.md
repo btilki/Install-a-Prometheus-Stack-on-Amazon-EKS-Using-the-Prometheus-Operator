@@ -79,7 +79,7 @@ You must have the following installed and configured:
 Open:
 
 ```
-eksctl/create-cluster.yaml
+vim eksctl/create-cluster.yaml
 ```
 
 Here you can adjust:
