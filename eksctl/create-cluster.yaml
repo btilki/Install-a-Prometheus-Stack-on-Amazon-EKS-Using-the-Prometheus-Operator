@@ -12,8 +12,8 @@ vpc:                             # Use eksctl defaults or set existingVPC if you
 
 managedNodeGroups:
   - name: ng-standard            # Node group name
-    instanceType: t3.medium      # EC2 instance type for worker nodes
-    desiredCapacity: 2           
+    instanceType: t3.large      # EC2 instance type for worker nodes
+    desiredCapacity: 3           
     minSize: 1                   # Minimum node count for scaling
     maxSize: 4                   
     volumeSize: 20               # Size of node root volume in GB
