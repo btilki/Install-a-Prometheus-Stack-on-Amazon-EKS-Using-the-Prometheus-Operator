@@ -1,4 +1,4 @@
-# Install Prometheus Stack in Kubernetes (EKS) — Sample Project
+# Install Prometheus Stack in Kubernetes (EKS) using the Prometheus Operator and add a PrometheusRule and a Grafana dashboard 
 
 This sample project contains files and scripts you can download and push to a GitHub repository. It demonstrates how to:
 
