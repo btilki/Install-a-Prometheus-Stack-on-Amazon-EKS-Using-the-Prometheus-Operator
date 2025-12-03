@@ -109,14 +109,6 @@ Create the cluster:
 ./scripts/create-cluster.sh
 ```
 
-### What this command does
-
-It runs:
-
-```bash
-eksctl create cluster -f eksctl/create-cluster.yaml
-```
-
 which:
 
 * Provision the EKS control plane
