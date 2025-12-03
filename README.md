@@ -1,145 +1,291 @@
-# Install a Prometheus Stack on Amazon EKS Using the Prometheus Operator 
+# Install a Prometheus Stack on Amazon EKS Using the Prometheus Operator
 
-Includes: PrometheusRule example + sample Grafana dashboard
+### Includes: PrometheusRule example + sample Grafana dashboard
 
-This sample project provides everything you need to stand up an Amazon EKS cluster, install a full monitoring stack using the kube-prometheus-stack Helm chart (Prometheus Operator), deploy a sample alert, and load a Grafana dashboard.
+This sample project provides everything you need to stand up an Amazon EKS cluster, install a full monitoring stack using the **kube-prometheus-stack** Helm chart (Prometheus Operator), deploy a sample alert, and load a Grafana dashboard.
 
 It includes ready-to-use manifests, Helm values, utility scripts, and a packaging helper.
 You can clone this repo or copy these files into your own GitHub project.
 
-What This Project Demonstrates
+---
 
-Creating an Amazon EKS cluster using eksctl
+## What This Project Demonstrates
 
-Installing the Prometheus Operator and the full monitoring suite:
+* Creating an Amazon EKS cluster using **eksctl**
+* Installing the **Prometheus Operator** and the full monitoring suite:
 
-Prometheus
+  * Prometheus
+  * Alertmanager
+  * Grafana
+  * Exporters and CRDs that power the operator
+* Applying a sample **PrometheusRule** alert
+* Importing a simple **Grafana dashboard**
+* Cleaning up the environment safely
 
-Alertmanager
+---
 
-Grafana
+## Technologies Used
 
-Exporters and CRDs that power the operator
+* **Prometheus / Prometheus Operator** (`kube-prometheus-stack`)
+* **Kubernetes** on **Amazon EKS**
+* **Helm 3**
+* **eksctl**
+* **Grafana**
+* Bash (Linux/macOS)
 
-Applying a sample PrometheusRule alert
+---
 
-Importing a simple Grafana dashboard
+## Repository Contents
 
-Cleaning up the environment safely
+| Path                                       | Description                                                                              |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `eksctl/create-cluster.yaml`               | eksctl configuration describing the EKS cluster, nodegroup, region, instance types, etc. |
+| `scripts/create-cluster.sh`                | Script that runs `eksctl create cluster ...` using the config file.                      |
+| `scripts/delete-cluster.sh`                | Script to tear down the cluster.                                                         |
+| `helm/values-prometheus.yaml`              | Opinionated example values for the kube-prometheus-stack Helm chart.                     |
+| `manifests/prometheus-rules.yaml`          | Example PrometheusRule defining a basic alert.                                           |
+| `grafana/dashboards/sample-dashboard.json` | Minimal example Grafana dashboard for import.                                            |
+| `package.sh`                               | Zip/packaging helper.                                                                    |
+| `.gitignore`, `LICENSE`                    | Project metadata.                                                                        |
 
+**⚠️ Important:**
+This repository is intended for demonstration.
+Before using in production:
 
-This sample project contains files and scripts you can download and push to a GitHub repository. It demonstrates how to:
+* Replace all default passwords and secrets.
+* Update storage classes, IAM roles, and cluster configuration to match your environment.
+* Apply proper security, RBAC, and network controls.
 
-- Create an AWS EKS cluster with `eksctl`
-- Install the Prometheus stack (Prometheus, Alertmanager, and Grafana) using the `kube-prometheus-stack` Helm chart (Prometheus Operator)
-- Add a basic PrometheusRule (alert) and a sample Grafana dashboard
-- Clean up the cluster
+---
 
-Technologies used:
-- Prometheus (Prometheus Operator / kube-prometheus-stack)
-- Kubernetes (Amazon EKS)
-- Helm
-- eksctl
-- Grafana
-- Linux / macOS (bash)
+## Prerequisites
 
-Contents of this repo:
-- eksctl/create-cluster.yaml — sample EKS cluster configuration for `eksctl`
-- scripts/create-cluster.sh — script to create the cluster (uses eksctl)
-- scripts/delete-cluster.sh — delete the cluster
-- helm/values-prometheus.yaml — opinionated values for the `kube-prometheus-stack` Helm chart (sample)
-- manifests/prometheus-rules.yaml — example PrometheusRule (alert) resource
-- grafana/dashboards/sample-dashboard.json — a minimal Grafana dashboard JSON you can import
-- package.sh — create a downloadable zip of the repo
-- .gitignore, LICENSE
+You must have the following installed and configured:
 
-Important: This is a sample/demo configuration. Do not use the default passwords in production. Replace storage class names and access policies to fit your AWS account and cluster configuration.
+* AWS account + CLI credentials (`~/.aws/credentials`)
+* **eksctl** — [https://eksctl.io/](https://eksctl.io/)
+* **kubectl** — [https://kubernetes.io/docs/tasks/tools/](https://kubernetes.io/docs/tasks/tools/)
+* **Helm 3** — [https://helm.sh/docs/intro/install/](https://helm.sh/docs/intro/install/)
+* AWS IAM permissions for EKS (ability to create VPC, EC2, IAM resources)
 
-Prerequisites
-- AWS account and AWS CLI configured (~/.aws/credentials)
-- eksctl installed: https://eksctl.io/
-- kubectl installed and configured: https://kubernetes.io/docs/tasks/tools/
-- Helm 3: https://helm.sh/docs/intro/install/
-- jq (optional, used in scripts)
-- AWS IAM permissions to create EKS clusters and related resources (VPC, EC2, IAM)
+---
 
-Step-by-step guide
-1) Inspect or adjust the cluster configuration
-   - Open `eksctl/create-cluster.yaml`. Adjust region, clusterName, nodegroup instance types, and scaling to fit your needs and budget.
+# Step-by-Step Guide
 
-2) Create the EKS cluster
-   - Make the scripts executable:
-     ```
-     chmod +x scripts/create-cluster.sh scripts/delete-cluster.sh
-     ```
-   - Run:
-     ```
-     ./scripts/create-cluster.sh
-     ```
-   - The script runs `eksctl create cluster -f eksctl/create-cluster.yaml`. It will create an EKS control plane and managed nodegroup. This can take ~10–20 minutes.
+---
 
-3) Install Helm chart repositories
-   ```
-   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-   helm repo update
-   ```
+## 1. Review or Customise the Cluster Configuration
 
-4) Install kube-prometheus-stack with the sample values
-   - Example install command:
-     ```
-     export RELEASE_NAME=prometheus-stack
-     helm install $RELEASE_NAME prometheus-community/kube-prometheus-stack -f helm/values-prometheus.yaml --namespace monitoring --create-namespace
-     ```
-   - This installs Prometheus, Alertmanager, Grafana, and related components into the `monitoring` namespace.
+Open:
 
-5) Verify installation
-   ```
-   kubectl get pods -n monitoring
-   kubectl get svc -n monitoring
-   ```
-   Wait until pods are in `Running` (or `Completed` for some jobs).
+```
+eksctl/create-cluster.yaml
+```
 
-6) Get Grafana credentials and access the UI
-   - If you used the sample `values-prometheus.yaml`, Grafana admin password is set there. Otherwise retrieve:
-     ```
-     kubectl get secret --namespace monitoring prometheus-stack-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
-     ```
-     (Replace `prometheus-stack` with your release name if different.)
-   - Port-forward to access Grafana locally:
-     ```
-     kubectl port-forward -n monitoring svc/prometheus-stack-grafana 3000:80
-     # then open http://localhost:3000
-     ```
-   - Login: user `admin` and the password from above (or what you set).
+Here you can adjust:
 
-7) Create rule / alerts
-   - Apply the sample `manifests/prometheus-rules.yaml`:
-     ```
-     kubectl apply -n monitoring -f manifests/prometheus-rules.yaml
-     ```
-   - The rule alerts when the kube-system `kube-apiserver` or a demo metric crosses the threshold (it's a simple example). Adjust it for production.
+* **region**
+* **clusterName**
+* **nodeGroup instance type(s)**
+* **scaling configuration**
+* **SSH access** (optional)
 
-8) Import the sample Grafana dashboard
-   - In Grafana UI -> Dashboards -> Import -> Paste the JSON from `grafana/dashboards/sample-dashboard.json`.
+This determines how large your cluster is and how expensive it will be.
+For testing, small instance types like `t3.medium` are usually sufficient.
 
-9) Cleanup
-   - Delete Helm release and namespace (optional):
-     ```
-     helm uninstall prometheus-stack -n monitoring
-     kubectl delete namespace monitoring
-     ```
-   - Delete the EKS cluster:
-     ```
-     ./scripts/delete-cluster.sh
-     ```
+---
 
-Notes and recommendations
-- Use an appropriate storageClass for PVs in AWS (gp2 or gp3). The values file uses `gp2` as an example.
-- For production, use external storage and HA configurations for Alertmanager and Prometheus, and secure Grafana (OAuth, IAM auth).
-- Rotate passwords and use Kubernetes secrets or external secret stores (AWS Secrets Manager, HashiCorp Vault).
-- You can use `kubectl get prometheus` / `kubectl get servicemonitor`, etc. to explore the Prometheus Operator CRDs.
+## 2. Create the EKS Cluster
 
-License
-- MIT. See LICENSE file.
+Make scripts executable:
 
-That's it — the repo is self-contained. Follow the steps above to create the EKS cluster, install the Prometheus stack, and try the sample alert + dashboard.
+```bash
+chmod +x scripts/create-cluster.sh scripts/delete-cluster.sh
+```
+
+Create the cluster:
+
+```bash
+./scripts/create-cluster.sh
+```
+
+### What this command does
+
+It runs:
+
+```bash
+eksctl create cluster -f eksctl/create-cluster.yaml
+```
+
+which:
+
+* Provision the EKS control plane
+* Creates a managed nodegroup
+* Sets up VPC networking for the cluster
+
+This process usually takes **10–20 minutes**.
+
+---
+
+## 3. Add the Helm Repositories
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+```
+
+### What this does:
+
+* Adds the official Prometheus community charts repo
+* Refreshes local chart information
+
+---
+
+## 4. Install the kube-prometheus-stack
+
+Use the included values file:
+
+```bash
+export RELEASE_NAME=prometheus-stack
+
+helm install $RELEASE_NAME \
+  prometheus-community/kube-prometheus-stack \
+  -f helm/values-prometheus.yaml \
+  --namespace monitoring \
+  --create-namespace
+```
+
+### What this installs:
+
+* **Prometheus**
+* **Alertmanager**
+* **Grafana**
+* **ServiceMonitor** CRDs and operator components
+* Node exporter / kube-state-metrics
+* Default dashboards and alerts
+
+Everything is created inside the `monitoring` namespace.
+
+---
+
+## 5. Verify the Deployment
+
+Check the pods:
+
+```bash
+kubectl get pods -n monitoring
+```
+
+Check services:
+
+```bash
+kubectl get svc -n monitoring
+```
+
+Wait for all pods to become **Running** or **Completed**.
+
+---
+
+## 6. Access Grafana
+
+### Get the Grafana admin password:
+
+If using the provided values file:
+
+```bash
+kubectl get secret \
+  --namespace monitoring \
+  prometheus-stack-grafana \
+  -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+```
+
+*(Update the secret name if your release name is different.)*
+
+### Port-forward the Grafana service:
+
+```bash
+kubectl port-forward -n monitoring svc/prometheus-stack-grafana 3000:80
+```
+
+Now open:
+
+```
+http://localhost:3000
+```
+
+**Login:**
+
+* Username: `admin`
+* Password: retrieved above
+
+---
+
+## 7. Apply the Sample PrometheusRule
+
+```bash
+kubectl apply -n monitoring -f manifests/prometheus-rules.yaml
+```
+
+### What this does:
+
+* Creates or updates a PrometheusRule CRD
+* Defines a simple alert (e.g., based on API server metrics or a sample demo metric)
+* Validates that the Prometheus Operator reconciles custom rules correctly
+
+Modify thresholds or conditions to match real production requirements.
+
+---
+
+## 8. Import the Sample Grafana Dashboard
+
+In the Grafana UI:
+
+1. Go to **Dashboards → Import**
+2. Paste the JSON from:
+
+```
+grafana/dashboards/sample-dashboard.json
+```
+
+3. Click **Import**
+
+You should now see a minimal dashboard populated with sample panels.
+
+---
+
+## 9. Cleanup the Environment (Optional)
+
+Remove the monitoring stack:
+
+```bash
+helm uninstall prometheus-stack -n monitoring
+kubectl delete namespace monitoring
+```
+
+Remove the EKS cluster:
+
+```bash
+./scripts/delete-cluster.sh
+```
+
+---
+
+# Notes & Best Practices
+
+* Use AWS-appropriate storage classes (e.g., `gp3` for production).
+* For production:
+
+  * Enable HA for Prometheus and Alertmanager
+  * Integrate Grafana with OAuth/IAM
+  * Use external persistent storage and backups
+* Rotate all passwords and secrets; use:
+
+  * Kubernetes Secrets
+  * AWS Secrets Manager
+  * HashiCorp Vault
+
+---
+
+## License
+
+MIT
