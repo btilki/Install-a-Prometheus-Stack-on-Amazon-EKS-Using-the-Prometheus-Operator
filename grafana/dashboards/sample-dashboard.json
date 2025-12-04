@@ -1,7 +1,7 @@
 {
   "id": null,
   "uid": null,
-  "title": "Sample - Node CPU", # Dashboard title
+  "title": "Sample - Node CPU", // Dashboard title
   "tags": ["example"],          // Dashboard tags for grouping
   "timezone": "browser",        // Uses viewer's local timezone
   "schemaVersion": 27,          // Grafana schema version
